@@ -423,3 +423,135 @@ SELECT c.companyname from Customers c
 JOIN Orders o 
 on o.CustomerID = c.CustomerID
 WHERE c.customerid NOT in (SELECT DISTINCT(c2.CustomerID) from Customers c2);
+
+--101. Hangi tedarikçi hangi ürünü sağlıyor ?
+SELECT s.companyname, p.productname from Suppliers s
+JOIN Products p 
+on p.SupplierID = s.SupplierID;
+
+--102. Hangi sipariş hangi kargo şirketi ile ne zaman gönderilmiş..?
+SELECT o.orderid, s.CompanyName, o.shippeddate from Orders o 
+JOIN Shippers s
+on s.ShipperID = o.ShipVia;
+
+--103. Hangi siparişi hangi müşteri verir..?
+SELECT o.orderid, c.companyname from Orders o 
+JOIN Customers c
+on c.CustomerID = o.CustomerID;
+
+--104. Hangi çalışan, toplam kaç sipariş almış..?
+SELECT e.EmployeeID, e.firstname, e.lastname, COUNT(o.OrderID) OrderCount from Employees e 
+JOIN Orders o
+on e.EmployeeID = o.EmployeeID
+GROUP by e.EmployeeID;
+
+--105. En fazla siparişi kim almış..?
+SELECT e.EmployeeID, e.firstname, e.lastname, COUNT(o.OrderID) OrderCount from Employees e 
+JOIN Orders o
+on e.EmployeeID = o.EmployeeID
+GROUP by e.EmployeeID
+order by OrderCount DESC
+LIMIT 1;
+
+--106. Hangi siparişi, hangi çalışan, hangi müşteri vermiştir..?
+SELECT o.orderid, c.companyname, e.EmployeeID from Orders o 
+JOIN Customers c
+on c.CustomerID = o.CustomerID
+JOIN Employees e 
+on e.EmployeeID = o.EmployeeID;
+
+--107. Hangi ürün, hangi kategoride bulunmaktadır..? Bu ürünü kim tedarik etmektedir..?
+SELECT p.productname, c.categoryname, s.companyname from Products p
+JOIN Categories c
+on p.CategoryID = c.CategoryID
+JOIN Suppliers s
+on s.SupplierID = p.SupplierID;
+
+--108. Hangi siparişi hangi müşteri vermiş, hangi çalışan almış, hangi tarihte, hangi kargo şirketi tarafından gönderilmiş hangi üründen kaç adet alınmış, hangi fiyattan alınmış, ürün hangi kategorideymiş bu ürünü hangi tedarikçi sağlamış
+SELECT o.orderid, c.companyname, e.FirstName, e.LastName, o.OrderDate, s.CompanyName, 
+       p.ProductName, od.Quantity, od.UnitPrice, ca.CategoryName, su.CompanyName 
+FROM Orders o 
+JOIN Customers c ON c.CustomerID = o.CustomerID 
+JOIN Employees e ON e.EmployeeID = o.EmployeeID 
+JOIN Shippers s ON s.ShipperID = o.ShipVia 
+JOIN 'Order Details' od ON o.OrderID = od.OrderID 
+JOIN Products p ON p.ProductID = od.ProductID 
+JOIN Categories ca ON ca.CategoryID = p.CategoryID 
+JOIN Suppliers su ON su.SupplierID = p.SupplierID;
+
+--109. Altında ürün bulunmayan kategoriler
+SELECT categoryname from Categories
+where categoryname in (SELECT categoryid from Products 
+                           where productid is NULL);
+
+--110. Manager ünvanına sahip tüm müşterileri listeleyiniz.
+SELECT companyname, contactname, contacttitle from Customers
+where contacttitle LIKE '%MANAGER%';
+
+--111. FR ile başlayan 5 karekter olan tüm müşterileri listeleyiniz.
+SELECT companyname from Customers
+where companyname like 'FR%' AND LENGTH(companyname) = 5;
+
+--112. (171) alan kodlu telefon numarasına sahip müşterileri listeleyiniz.
+SELECT companyname, phone from Customers
+where phone like '%(171)%';
+
+--113. BirimdekiMiktar alanında boxes geçen tüm ürünleri listeleyiniz.
+SELECT * from Products
+where quantityperunit like '%boxes%';
+
+--114. Fransa ve Almanyadaki (France,Germany) Müdürlerin (Manager) Adını ve Telefonunu listeleyiniz.(MusteriAdi,Telefon)
+SELECT contactname, phone from Customers
+where (country = 'France' or country = 'Germany') and contacttitle like '%manager%';
+
+--115. En yüksek birim fiyata sahip 10 ürünü listeleyiniz.
+SELECT productname, unitprice from Products
+order by unitprice DESC 
+LIMIT 10;
+
+--116. Müşterileri ülke ve şehir bilgisine göre sıralayıp listeleyiniz.
+SELECT companyname, country, city from Customers
+order by country, city ASC;
+
+--117. Personellerin ad,soyad ve yaş bilgilerini listeleyiniz.
+SELECT firstname, lastname,  ROUND((julianday('now') - julianday(birthdate)) / 365.25) AS age  from Employees;
+
+--118. 35 gün içinde sevk edilmeyen satışları listeleyiniz.
+SELECT orderid, ROUND(julianday(requireddate) - julianday(shippeddate)) Days from Orders
+where (julianday(requireddate) - julianday(shippeddate)) > 35;
+
+--119. Birim fiyatı en yüksek olan ürünün kategori adını listeleyiniz. (Alt Sorgu)
+SELECT c.categoryname from Categories c
+JOIN Products p
+on p.CategoryID = c.CategoryID
+where p.UnitPrice = (SELECT MAX(p2.unitprice) from Products p2);
+
+--120. Kategori adında 'on' geçen kategorilerin ürünlerini listeleyiniz. (Alt Sorgu)
+SELECT p.productname from Products p 
+JOIN Categories c
+on c.CategoryID = p.CategoryID
+WHERE c.categoryname IN (SELECT c2.categoryname from Categories c2
+                         WHERE c2.CategoryName LIKE '%on%');
+
+--121. Konbu adlı üründen kaç adet satılmıştır.
+SELECT SUM(od.quantity) TotalSales from 'Order Details' od
+JOIN Products p 
+on p.ProductID = od.ProductID
+where p.ProductName = 'Konbu';
+
+--122. Japonyadan kaç farklı ürün tedarik edilmektedir.
+SELECT COUNT(p.productid) from Products p 
+JOIN Suppliers s 
+on s.SupplierID = p.SupplierID
+where s.Country = 'Japan';
+
+--123. 2013 yılında yapılmış satışların en yüksek, en düşük ve ortalama nakliye ücretlisi ne kadardır?
+SELECT MAX(freight) MaxFreight, MIN(freight) MinFreight, ROUND(AVG(freight),2) AvgFreight from Orders;
+
+--124. Faks numarası olan tüm müşterileri listeleyiniz.
+SELECT * from Customers
+where fax is NOT NULL;
+
+--125. 2013-07-16 ile 2013-07-30 arasında sevk edilen satışları listeleyiniz. 
+select * from Orders
+where orderdate BETWEEN '2013-07-16' AND '2013-07-30';
