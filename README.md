@@ -1,2 +1,2 @@
-# etiya_sql5
-Etiya Akademi SQL atölye 5
+# etiya_sql5-6
+Etiya Akademi SQL atölye 5-6
