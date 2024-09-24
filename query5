@@ -274,6 +274,7 @@ JOIN Orders o
 on o.OrderID = od.OrderID
 WHERE o.EmployeeID = 3 and o.orderdate >= '2023-01-01';
 
+[38-50] ile [51,62] , 64 sonuçları aynıdır. 
 
 --63. Hangi ülkeden kaç müşterimiz var?
 SELECT country, COUNT(customerid) CustomerCount from Customers
@@ -284,3 +285,141 @@ SELECT SUM(od.Quantity * od.UnitPrice) Turnover from 'Order Details' od
 JOIN Orders o 
 on o.OrderID = od.OrderID
 where od.productid = 10 and o.OrderDate >= '2023-08-01';
+
+--66. Hangi çalışan şimdiye kadar toplam kaç sipariş almış..?
+SELECT e.FirstName, e.LastName, COUNT(e.EmployeeID) from Orders o 
+JOIN Employees e 
+on e.EmployeeID = o.EmployeeID
+GROUP by e.EmployeeID;
+
+--67. 91 müşterim var. Sadece 89’u sipariş vermiş. Sipariş vermeyen 2 kişiyi bulun
+SELECT customerid from Orders
+WHERE customerid not IN (SELECT customerid from Customers);
+
+--68. Brazil’de bulunan müşterilerin Şirket Adı, TemsilciAdi, Adres, Şehir, Ülke bilgileri
+SELECT companyname, contactname, address, city, country from Customers
+WHERE country = 'Brazil';
+
+--69. Brezilya’da olmayan müşteriler
+SELECT companyname, contactname, address, city, country from Customers
+WHERE country != 'Brazil';
+
+--70. Ülkesi (Country) YA Spain, Ya France, Ya da Germany olan müşteriler
+SELECT companyname, contactname, address, city, country from Customers
+WHERE country = 'Spain' or country = 'France' Or country = 'Germany';
+
+--71. Faks numarasını bilmediğim müşteriler
+SELECT companyname, contactname, address, city, country from Customers
+WHERE fax ISNULL;
+
+--72. Londra’da ya da Paris’de bulunan müşterilerim
+SELECT companyname, contactname, address, city, country from Customers
+WHERE city = 'London' or city = 'Paris';
+
+--73. Hem Mexico D.F’da ikamet eden HEM DE ContactTitle bilgisi ‘owner’ olan müşteriler
+SELECT companyname, contactname, address, city, country from Customers
+WHERE city = 'México D.F.' or contacttitle = 'Owner';
+
+--74. C ile başlayan ürünlerimin isimleri ve fiyatları
+SELECT productname, unitprice from Products
+where productname LIKE 'c%';
+
+
+--75. Adı (FirstName) ‘A’ harfiyle başlayan çalışanların (Employees); Ad, Soyad ve Doğum Tarihleri
+SELECT firstname, lastname, birthdate FROM Employees
+WHERE firstname LIKE 'a%';
+
+--76. İsminde ‘RESTAURANT’ geçen müşterilerimin şirket adları
+SELECT companyname from Customers
+WHERE companyname LIKE '%RESTAURANT%';
+
+--77. 50$ ile 100$ arasında bulunan tüm ürünlerin adları ve fiyatları
+SELECT productname, unitprice from Products
+where unitprice BETWEEN 50 and 100;
+
+--78. 1 temmuz 2013 ile 31 Aralık 2013 tarihleri arasındaki siparişlerin (Orders), SiparişID (OrderID) ve SiparişTarihi (OrderDate) bilgileri
+SELECT orderid, orderdate from Orders
+WHERE orderdate BETWEEN '2013-07-01' and '2013-12-31';
+
+70,71 ile 79, 80 sonuçları aynıdır.
+
+--81. Müşterilerimi ülkeye göre sıralıyorum:
+SELECT companyname, country from Customers
+order by country;
+
+--82. Ürünlerimi en pahalıdan en ucuza doğru sıralama, sonuç olarak ürün adı ve fiyatını istiyoruz
+SELECT productname, unitprice from Products
+ORDER by unitprice desc;
+
+--83. Ürünlerimi en pahalıdan en ucuza doğru sıralasın, ama stoklarını küçükten-büyüğe doğru göstersin sonuç olarak ürün adı ve fiyatını istiyoruz
+SELECT productname, unitprice from Products
+ORDER by unitprice desc, unitsinstock ASC;
+
+--84. 1 Numaralı kategoride kaç ürün vardır..?
+SELECT count(categoryid) from Products
+WHERE categoryid = 1;
+
+--85. Kaç farklı ülkeye ihracat yapıyorum..?
+SELECT Count(DISTINCT(country)) from Customers;
+
+--86. a.Bu ülkeler hangileri..?
+SELECT DISTINCT(country) from Customers;
+
+--87. En Pahalı 5 ürün
+SELECT productname, unitprice FROM Products
+Order BY unitprice desc
+LIMIT 5;
+
+--88. ALFKI CustomerID’sine sahip müşterimin sipariş sayısı..?
+SELECT COUNT(orderid) from Orders
+where customerid = 'ALFKI';
+
+--89. Ürünlerimin toplam maliyeti
+SELECT SUM(unitsinstock * unitprice) FROM Product;
+
+--90. Şirketim, şimdiye kadar ne kadar ciro yapmış..?
+SELECT SUM((unitprice * quantity) * (1 - discount)) TotalRevenue from 'Order Details';
+
+--91. Ortalama Ürün Fiyatım
+SELECT AVG(unitprice) AvgPrice FROM Products;
+
+--92. En Pahalı Ürünün Adı
+SELECT productname, MAX(unitprice) MaxPrice from Products;
+
+--93. En az kazandıran sipariş
+SELECT orderid, MIN(unitprice * quantity * (1-discount)) MinGain FROM 'Order Details';
+
+--94. Müşterilerimin içinde en uzun isimli müşteri
+SELECT companyname, MAX(LENGTH(companyname)) MaxLength from Customers;
+
+--95. Çalışanlarımın Ad, Soyad ve Yaşları
+SELECT firstname, lastname,  ROUND((julianday('now') - julianday(birthdate)) / 365.25) AS age  from Employees;
+
+--96. Hangi üründen toplam kaç adet alınmış..?
+SELECT p.productname, SUM(od.quantity) from 'Order Details' od
+JOIN Products p 
+on p.ProductID = od.ProductID
+GROUP by p.ProductID;
+
+--97. Hangi siparişte toplam ne kadar kazanmışım..?
+SELECT orderid, SUM((unitprice * quantity) * (1 - discount)) Revenue from 'Order Details'
+GROUP by orderid;
+
+--98. Hangi kategoride toplam kaç adet ürün bulunuyor..?
+SELECT c.categoryname, count(p.productid) ProductCount from Products p 
+JOIN Categories c 
+on c.CategoryID = p.CategoryID
+GROUP by c.CategoryID;
+
+--99. 202000 Adetten fazla satılan ürünler?
+SELECT p.productname, SUM(od.quantity) TotalSales from 'Order Details' od
+JOIN Products p 
+ON p.ProductID = od.ProductID
+GROUP by p.ProductID
+HAVING TotalSales > 202000;
+
+--100. Hangi Müşterilerim hiç sipariş vermemiş..?
+SELECT c.companyname from Customers c
+JOIN Orders o 
+on o.CustomerID = c.CustomerID
+WHERE c.customerid NOT in (SELECT DISTINCT(c2.CustomerID) from Customers c2);
